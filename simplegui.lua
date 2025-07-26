@@ -3,29 +3,25 @@ local UILibrary = {}
 -- Modern color palette
 UILibrary.DefaultColors = {
     TitleColor = Color3.fromRGB(255, 255, 255),
-    TitleBarColor = Color3.fromRGB(25, 25, 30),
-    CollapseBtnColor = Color3.fromRGB(45, 45, 50),
-    ButtonColor = Color3.fromRGB(50, 50, 60),
-    ButtonHoverColor = Color3.fromRGB(65, 65, 75),
-    ButtonTextColor = Color3.fromRGB(240, 240, 240),
-    ToggleColor = Color3.fromRGB(50, 50, 60),
-    ToggleColorOFF = Color3.fromRGB(200, 60, 60),
-    ToggleColorON = Color3.fromRGB(80, 180, 80),
-    MainFrameColor = Color3.fromRGB(35, 35, 40),
-    SeparatorColor = Color3.fromRGB(80, 80, 90),
-    TextBoxColor = Color3.fromRGB(45, 45, 55),
-    TextBoxPlaceholderColor = Color3.fromRGB(150, 150, 150),
-    AccentColor = Color3.fromRGB(100, 150, 255),
-    ShadowColor = Color3.fromRGB(0, 0, 0, 0.5)
+    CollapseBtnColor = Color3.fromRGB(25, 25, 25),
+    ButtonColor = Color3.fromRGB(45, 45, 45),
+    ButtonHoverColor = Color3.fromRGB(60, 60, 60),
+    ToggleColor = Color3.fromRGB(45, 45, 45),
+    ToggleColorOFF = Color3.fromRGB(200, 50, 50),
+    ToggleColorON = Color3.fromRGB(50, 200, 50),
+    MainFrameColor = Color3.fromRGB(35, 35, 35),
+    SeparatorColor = Color3.fromRGB(70, 70, 70),
+    TextBoxColor = Color3.fromRGB(45, 45, 45),
+    AccentColor = Color3.fromRGB(0, 120, 215)
 }
 
 function UILibrary.new(config)
     local self = setmetatable({}, { __index = UILibrary })
     
-    -- Configuration
+    -- Configuration with smaller default size
     self.Title = config.Title or "UI Library"
-    self.Size = config.Size or UDim2.new(0, 250, 0, 350)
-    self.Position = config.Position or UDim2.new(0.5, -125, 0.5, -175)
+    self.Size = config.Size or UDim2.new(0, 180, 0, 250) -- Smaller default size
+    self.Position = config.Position or UDim2.new(0.5, -90, 0.5, -125) -- Adjusted for new size
     self.Colors = {}
     
     -- Apply custom colors or defaults
@@ -48,10 +44,9 @@ function UILibrary:CreateUI()
     -- Main ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
     self.ScreenGui.Name = "UILibrary"
-    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     self.ScreenGui.Parent = game:GetService("CoreGui")
     
-    -- Main Frame with drop shadow
+    -- Main Frame with rounded corners
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
     self.MainFrame.Size = self.Size
@@ -60,45 +55,30 @@ function UILibrary:CreateUI()
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.Active = true
     self.MainFrame.Draggable = true
-    self.MainFrame.ClipsDescendants = true
+    
+    -- Add corner rounding
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = self.MainFrame
+    
     self.MainFrame.Parent = self.ScreenGui
     
-    -- Shadow effect
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 10, 1, 10)
-    shadow.Position = UDim2.new(0, -5, 0, -5)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://1316045217"
-    shadow.ImageColor3 = self.Colors.ShadowColor
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-    shadow.Parent = self.MainFrame
-    
-    -- Title Bar with gradient
+    -- Title Bar with accent color
     self.TitleBar = Instance.new("Frame")
     self.TitleBar.Name = "TitleBar"
-    self.TitleBar.Size = UDim2.new(1, 0, 0, 30)
+    self.TitleBar.Size = UDim2.new(1, 0, 0, 24) -- Slightly taller for better appearance
     self.TitleBar.Position = UDim2.new(0, 0, 0, 0)
-    self.TitleBar.BackgroundColor3 = self.Colors.TitleBarColor
+    self.TitleBar.BackgroundColor3 = self.Colors.AccentColor
     self.TitleBar.BorderSizePixel = 0
-    self.TitleBar.ZIndex = 2
+    
+    -- Round only top corners
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 6)
+    titleCorner.Parent = self.TitleBar
+    
     self.TitleBar.Parent = self.MainFrame
     
-    -- Gradient effect
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, self.Colors.TitleBarColor),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(
-            math.floor(self.Colors.TitleBarColor.R * 255 * 0.8),
-            math.floor(self.Colors.TitleBarColor.G * 255 * 0.8),
-            math.floor(self.Colors.TitleBarColor.B * 255 * 0.8)
-        ))
-    }
-    gradient.Rotation = 90
-    gradient.Parent = self.TitleBar
-    
-    -- Title Text
+    -- Title Text with better typography
     self.TitleText = Instance.new("TextLabel")
     self.TitleText.Name = "TitleText"
     self.TitleText.Size = UDim2.new(0.7, 0, 1, 0)
@@ -109,60 +89,56 @@ function UILibrary:CreateUI()
     self.TitleText.TextXAlignment = Enum.TextXAlignment.Left
     self.TitleText.Font = Enum.Font.GothamSemibold
     self.TitleText.TextSize = 14
-    self.TitleText.ZIndex = 2
     self.TitleText.Parent = self.TitleBar
     
-    -- Minimize Button
+    -- Minimize Button with better styling
     self.MinimizeButton = Instance.new("TextButton")
     self.MinimizeButton.Name = "MinimizeButton"
-    self.MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    self.MinimizeButton.Position = UDim2.new(1, -30, 0, 0)
-    self.MinimizeButton.BackgroundColor3 = self.Colors.CollapseBtnColor
+    self.MinimizeButton.Size = UDim2.new(0, 24, 0, 24)
+    self.MinimizeButton.Position = UDim2.new(1, -24, 0, 0)
+    self.MinimizeButton.BackgroundColor3 = Color3.new(1, 1, 1)
+    self.MinimizeButton.BackgroundTransparency = 1
     self.MinimizeButton.BorderSizePixel = 0
-    self.MinimizeButton.Text = "-"
+    self.MinimizeButton.Text = "─"
     self.MinimizeButton.TextColor3 = self.Colors.TitleColor
     self.MinimizeButton.Font = Enum.Font.GothamBold
     self.MinimizeButton.TextSize = 16
-    self.MinimizeButton.ZIndex = 2
-    self.MinimizeButton.Parent = self.TitleBar
     
     -- Button hover effect
     self.MinimizeButton.MouseEnter:Connect(function()
-        game:GetService("TweenService"):Create(self.MinimizeButton, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.ButtonHoverColor
-        }):Play()
+        self.MinimizeButton.TextColor3 = Color3.new(0.8, 0.8, 0.8)
     end)
     
     self.MinimizeButton.MouseLeave:Connect(function()
-        game:GetService("TweenService"):Create(self.MinimizeButton, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.CollapseBtnColor
-        }):Play()
+        self.MinimizeButton.TextColor3 = self.Colors.TitleColor
     end)
+    
+    self.MinimizeButton.Parent = self.TitleBar
     
     -- Scrolling Frame
     self.ScrollingFrame = Instance.new("ScrollingFrame")
     self.ScrollingFrame.Name = "ContentFrame"
-    self.ScrollingFrame.Size = UDim2.new(1, 0, 1, -30)
-    self.ScrollingFrame.Position = UDim2.new(0, 0, 0, 30)
+    self.ScrollingFrame.Size = UDim2.new(1, 0, 1, -24)
+    self.ScrollingFrame.Position = UDim2.new(0, 0, 0, 24)
     self.ScrollingFrame.BackgroundTransparency = 1
     self.ScrollingFrame.BorderSizePixel = 0
-    self.ScrollingFrame.ScrollBarThickness = 5
-    self.ScrollingFrame.ScrollBarImageColor3 = self.Colors.AccentColor
+    self.ScrollingFrame.ScrollBarThickness = 4
     self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    self.ScrollingFrame.ScrollBarImageColor3 = self.Colors.AccentColor
     self.ScrollingFrame.Parent = self.MainFrame
     
-    -- UIListLayout for elements
+    -- UIListLayout for elements with padding
     self.UIListLayout = Instance.new("UIListLayout")
-    self.UIListLayout.Padding = UDim.new(0, 8)
+    self.UIListLayout.Padding = UDim.new(0, 8) -- More compact spacing
     self.UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     self.UIListLayout.Parent = self.ScrollingFrame
     
-    -- Padding
+    -- Add padding to the content
     local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, 10)
-    padding.PaddingRight = UDim.new(0, 10)
-    padding.PaddingTop = UDim.new(0, 10)
-    padding.PaddingBottom = UDim.new(0, 10)
+    padding.PaddingLeft = UDim.new(0, 8)
+    padding.PaddingRight = UDim.new(0, 8)
+    padding.PaddingTop = UDim.new(0, 8)
+    padding.PaddingBottom = UDim.new(0, 8)
     padding.Parent = self.ScrollingFrame
     
     -- Store original size for toggling
@@ -176,27 +152,19 @@ function UILibrary:CreateUI()
     
     -- Update canvas size when elements are added
     self.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.UIListLayout.AbsoluteContentSize.Y + 20)
+        self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.UIListLayout.AbsoluteContentSize.Y + 16)
     end)
 end
 
 function UILibrary:ToggleMinimize()
     self.Minimized = not self.Minimized
-    local tweenService = game:GetService("TweenService")
-    
     if self.Minimized then
-        -- Animate minimize
-        tweenService:Create(self.MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, self.OriginalSize.X.Offset, 0, 30)
-        }):Play()
+        self.MainFrame.Size = UDim2.new(0, self.OriginalSize.X.Offset, 0, 24)
         self.MinimizeButton.Text = "+"
         self.ScrollingFrame.Visible = false
     else
-        -- Animate restore
-        tweenService:Create(self.MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = self.OriginalSize
-        }):Play()
-        self.MinimizeButton.Text = "-"
+        self.MainFrame.Size = self.OriginalSize
+        self.MinimizeButton.Text = "─"
         self.ScrollingFrame.Visible = true
     end
 end
@@ -209,55 +177,42 @@ end
 function UILibrary:AddButton(config)
     local button = Instance.new("TextButton")
     button.Name = "Button_" .. config.Text
-    button.Size = UDim2.new(1, 0, 0, 35)
+    button.Size = UDim2.new(1, 0, 0, 28) -- More compact button
     button.BackgroundColor3 = self.Colors.ButtonColor
     button.BorderSizePixel = 0
     button.Text = config.Text
-    button.TextColor3 = self.Colors.ButtonTextColor
-    button.Font = Enum.Font.GothamSemibold
-    button.TextSize = 14
+    button.TextColor3 = self.Colors.TitleColor
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 13
     button.LayoutOrder = #self.Elements + 1
-    button.AutoButtonColor = false
-    button.Parent = self.ScrollingFrame
     
-    -- Corner rounding
+    -- Add rounded corners
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 5)
+    corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = button
     
-    -- Hover effects
+    -- Hover effect
     button.MouseEnter:Connect(function()
-        game:GetService("TweenService"):Create(button, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.ButtonHoverColor,
-            TextColor3 = self.Colors.TitleColor
-        }):Play()
+        button.BackgroundColor3 = self.Colors.ButtonHoverColor
     end)
     
     button.MouseLeave:Connect(function()
-        game:GetService("TweenService"):Create(button, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.ButtonColor,
-            TextColor3 = self.Colors.ButtonTextColor
-        }):Play()
+        button.BackgroundColor3 = self.Colors.ButtonColor
     end)
     
-    -- Click effect
-    button.MouseButton1Down:Connect(function()
-        game:GetService("TweenService"):Create(button, TweenInfo.new(0.05), {
-            BackgroundColor3 = self.Colors.AccentColor,
-            TextColor3 = Color3.new(1, 1, 1)
-        }):Play()
-    end)
-    
-    button.MouseButton1Up:Connect(function()
-        game:GetService("TweenService"):Create(button, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.ButtonHoverColor,
-            TextColor3 = self.Colors.TitleColor
-        }):Play()
-        
-        if config.Callback then
+    if config.Callback then
+        button.MouseButton1Click:Connect(function()
+            -- Pulse effect on click
+            local originalSize = button.Size
+            button.Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset - 2, originalSize.Y.Scale, originalSize.Y.Offset - 2)
+            task.wait(0.1)
+            button.Size = originalSize
+            
             config.Callback()
-        end
-    end)
+        end)
+    end
+    
+    button.Parent = self.ScrollingFrame
     
     table.insert(self.Elements, button)
     return button
@@ -266,10 +221,9 @@ end
 function UILibrary:AddToggle(config)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Name = "Toggle_" .. config.Text
-    toggleFrame.Size = UDim2.new(1, 0, 0, 30)
+    toggleFrame.Size = UDim2.new(1, 0, 0, 28) -- More compact
     toggleFrame.BackgroundTransparency = 1
     toggleFrame.LayoutOrder = #self.Elements + 1
-    toggleFrame.Parent = self.ScrollingFrame
     
     local toggleText = Instance.new("TextLabel")
     toggleText.Name = "TextLabel"
@@ -280,91 +234,64 @@ function UILibrary:AddToggle(config)
     toggleText.TextColor3 = self.Colors.TitleColor
     toggleText.TextXAlignment = Enum.TextXAlignment.Left
     toggleText.Font = Enum.Font.Gotham
-    toggleText.TextSize = 14
+    toggleText.TextSize = 13
     toggleText.Parent = toggleFrame
     
     local toggleButton = Instance.new("TextButton")
     toggleButton.Name = "ToggleButton"
-    toggleButton.Size = UDim2.new(0.25, 0, 0.8, 0)
-    toggleButton.Position = UDim2.new(0.75, 0, 0.1, 0)
+    toggleButton.Size = UDim2.new(0.25, 0, 0.7, 0)
+    toggleButton.Position = UDim2.new(0.75, 0, 0.15, 0)
     toggleButton.BackgroundColor3 = self.Colors.ToggleColor
     toggleButton.BorderSizePixel = 0
-    toggleButton.Text = ""
-    toggleButton.AutoButtonColor = false
-    toggleButton.Parent = toggleFrame
+    toggleButton.Text = config.Default and "ON" or "OFF"
+    toggleButton.TextColor3 = config.Default and self.Colors.ToggleColorON or self.Colors.ToggleColorOFF
+    toggleButton.Font = Enum.Font.GothamSemibold
+    toggleButton.TextSize = 12
     
-    -- Corner rounding
+    -- Add rounded corners
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
+    corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = toggleButton
-    
-    -- Toggle indicator
-    local toggleIndicator = Instance.new("Frame")
-    toggleIndicator.Name = "Indicator"
-    toggleIndicator.Size = UDim2.new(0.45, 0, 0.8, 0)
-    toggleIndicator.Position = config.Default and UDim2.new(0.55, 0, 0.1, 0) or UDim2.new(0, 0, 0.1, 0)
-    toggleIndicator.BackgroundColor3 = config.Default and self.Colors.ToggleColorON or self.Colors.ToggleColorOFF
-    toggleIndicator.BorderSizePixel = 0
-    toggleIndicator.Parent = toggleButton
-    
-    -- Corner rounding for indicator
-    local indicatorCorner = Instance.new("UICorner")
-    indicatorCorner.CornerRadius = UDim.new(1, 0)
-    indicatorCorner.Parent = toggleIndicator
     
     local state = config.Default or false
     
-    -- Toggle animation
-    local function animateToggle(newState)
-        state = newState
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        
+    toggleButton.MouseButton1Click:Connect(function()
+        state = not state
         if state then
-            game:GetService("TweenService"):Create(toggleIndicator, tweenInfo, {
-                Position = UDim2.new(0.55, 0, 0.1, 0),
-                BackgroundColor3 = self.Colors.ToggleColorON
-            }):Play()
+            toggleButton.Text = "ON"
+            toggleButton.TextColor3 = self.Colors.ToggleColorON
+            toggleButton.BackgroundColor3 = Color3.new(0.1, 0.4, 0.1)
         else
-            game:GetService("TweenService"):Create(toggleIndicator, tweenInfo, {
-                Position = UDim2.new(0, 0, 0.1, 0),
-                BackgroundColor3 = self.Colors.ToggleColorOFF
-            }):Play()
+            toggleButton.Text = "OFF"
+            toggleButton.TextColor3 = self.Colors.ToggleColorOFF
+            toggleButton.BackgroundColor3 = Color3.new(0.4, 0.1, 0.1)
         end
         
         if config.Callback then
             config.Callback(state)
         end
+    end)
+    
+    -- Initialize state
+    if state then
+        toggleButton.BackgroundColor3 = Color3.new(0.1, 0.4, 0.1)
+    else
+        toggleButton.BackgroundColor3 = Color3.new(0.4, 0.1, 0.1)
     end
     
-    -- Click handler
-    toggleButton.MouseButton1Click:Connect(function()
-        animateToggle(not state)
-    end)
-    
-    -- Hover effects
-    toggleButton.MouseEnter:Connect(function()
-        game:GetService("TweenService"):Create(toggleButton, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.ButtonHoverColor
-        }):Play()
-    end)
-    
-    toggleButton.MouseLeave:Connect(function()
-        game:GetService("TweenService"):Create(toggleButton, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.ToggleColor
-        }):Play()
-    end)
+    toggleButton.Parent = toggleFrame
+    toggleFrame.Parent = self.ScrollingFrame
     
     table.insert(self.Elements, toggleFrame)
-    return toggleFrame, function() return state end, function(newState) animateToggle(newState) end
+    return toggleFrame, function() return state end
 end
 
 function UILibrary:AddTextBox(config)
     local textBoxFrame = Instance.new("Frame")
     textBoxFrame.Name = "TextBox_" .. config.Text
-    textBoxFrame.Size = UDim2.new(1, 0, 0, 60)
+    textBoxFrame.Size = UDim2.new(1, 0, 0, 50) -- More compact
     textBoxFrame.BackgroundTransparency = 1
     textBoxFrame.LayoutOrder = #self.Elements + 1
-    textBoxFrame.Parent = self.ScrollingFrame
     
     local textBoxLabel = Instance.new("TextLabel")
     textBoxLabel.Name = "TextLabel"
@@ -375,7 +302,7 @@ function UILibrary:AddTextBox(config)
     textBoxLabel.TextColor3 = self.Colors.TitleColor
     textBoxLabel.TextXAlignment = Enum.TextXAlignment.Left
     textBoxLabel.Font = Enum.Font.Gotham
-    textBoxLabel.TextSize = 14
+    textBoxLabel.TextSize = 13
     textBoxLabel.Parent = textBoxFrame
     
     local textBox = Instance.new("TextBox")
@@ -385,36 +312,32 @@ function UILibrary:AddTextBox(config)
     textBox.BackgroundColor3 = self.Colors.TextBoxColor
     textBox.BorderSizePixel = 0
     textBox.Text = config.Default or ""
-    textBox.PlaceholderText = config.Placeholder or ""
     textBox.TextColor3 = self.Colors.TitleColor
-    textBox.PlaceholderColor3 = self.Colors.TextBoxPlaceholderColor
     textBox.Font = Enum.Font.Gotham
     textBox.TextSize = 12
-    textBox.ClearTextOnFocus = false
-    textBox.Parent = textBoxFrame
+    textBox.PlaceholderText = config.Placeholder or ""
+    textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
     
-    -- Corner rounding
+    -- Add rounded corners
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 5)
+    corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = textBox
     
-    -- Focus effects
-    textBox.Focused:Connect(function()
-        game:GetService("TweenService"):Create(textBox, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.ButtonHoverColor
-        }):Play()
-    end)
+    -- Add padding
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 8)
+    padding.PaddingRight = UDim.new(0, 8)
+    padding.Parent = textBox
     
-    textBox.FocusLost:Connect(function()
-        game:GetService("TweenService"):Create(textBox, TweenInfo.new(0.1), {
-            BackgroundColor3 = self.Colors.TextBoxColor
-        }):Play()
-        
-        if config.Callback then
-            local enterPressed = not config.RequireEnter or false
-            config.Callback(textBox.Text, enterPressed)
-        end
-    end)
+    if config.Callback then
+        textBox.FocusLost:Connect(function(enterPressed)
+            if not enterPressed and config.RequireEnter then return end
+            config.Callback(textBox.Text)
+        end)
+    end
+    
+    textBox.Parent = textBoxFrame
+    textBoxFrame.Parent = self.ScrollingFrame
     
     table.insert(self.Elements, textBoxFrame)
     return textBoxFrame
@@ -431,23 +354,6 @@ function UILibrary:AddSeparator()
     
     table.insert(self.Elements, separator)
     return separator
-end
-
-function UILibrary:AddLabel(text)
-    local label = Instance.new("TextLabel")
-    label.Name = "Label_" .. text
-    label.Size = UDim2.new(1, 0, 0, 20)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = self.Colors.TitleColor
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.LayoutOrder = #self.Elements + 1
-    label.Parent = self.ScrollingFrame
-    
-    table.insert(self.Elements, label)
-    return label
 end
 
 function UILibrary:Destroy()
