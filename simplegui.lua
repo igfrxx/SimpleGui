@@ -8,7 +8,8 @@ UILibrary.DefaultColors = {
     ToggleColor = Color3.fromRGB(80, 80, 80),
     ToggleColorOFF = Color3.fromRGB(255, 0, 0),
     ToggleColorON = Color3.fromRGB(0, 255, 0),
-    MainFrameColor = Color3.fromRGB(30, 30, 30)
+    MainFrameColor = Color3.fromRGB(30, 30, 30),
+    SeparatorColor = Color3.fromRGB(255, 255, 255) -- New separator color option
 }
 
 function UILibrary:Create(config)
@@ -23,11 +24,11 @@ function UILibrary:Create(config)
     screenGui.Name = "UILibrary"
     screenGui.Parent = game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     
-    -- Main frame
+    -- Main frame (smaller size)
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 200, 0, 250) -- Default size with room for title
-    mainFrame.Position = UDim2.new(0.5, -100, 0.5, -125)
+    mainFrame.Size = UDim2.new(0, 180, 0, 200) -- Smaller width (180 instead of 200)
+    mainFrame.Position = UDim2.new(0.5, -90, 0.5, -100)
     mainFrame.BackgroundColor3 = colors.MainFrameColor
     mainFrame.BorderSizePixel = 0
     mainFrame.ClipsDescendants = true
@@ -35,16 +36,16 @@ function UILibrary:Create(config)
     mainFrame.Draggable = true
     mainFrame.Parent = screenGui
     
-    -- Title bar
+    -- Title bar (smaller height)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 25)
+    titleBar.Size = UDim2.new(1, 0, 0, 20) -- Smaller height (20 instead of 25)
     titleBar.Position = UDim2.new(0, 0, 0, 0)
     titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     titleBar.BorderSizePixel = 0
     titleBar.Parent = mainFrame
     
-    -- Title text
+    -- Title text (smaller font)
     local titleText = Instance.new("TextLabel")
     titleText.Name = "TitleText"
     titleText.Size = UDim2.new(0.7, 0, 1, 0)
@@ -54,37 +55,37 @@ function UILibrary:Create(config)
     titleText.TextColor3 = colors.TitleColor
     titleText.TextXAlignment = Enum.TextXAlignment.Left
     titleText.Font = Enum.Font.Gotham
-    titleText.TextSize = 12
+    titleText.TextSize = 11 -- Smaller font size
     titleText.Parent = titleBar
     
-    -- Collapse button
+    -- Collapse button (smaller size)
     local collapseButton = Instance.new("TextButton")
     collapseButton.Name = "CollapseButton"
-    collapseButton.Size = UDim2.new(0, 25, 0, 25)
-    collapseButton.Position = UDim2.new(1, -25, 0, 0)
+    collapseButton.Size = UDim2.new(0, 20, 0, 20) -- Smaller button
+    collapseButton.Position = UDim2.new(1, -20, 0, 0)
     collapseButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     collapseButton.BorderSizePixel = 0
     collapseButton.Text = "-"
     collapseButton.TextColor3 = colors.CollapseBtnColor
     collapseButton.Font = Enum.Font.Gotham
-    collapseButton.TextSize = 14
+    collapseButton.TextSize = 12 -- Smaller font
     collapseButton.Parent = titleBar
     
     -- Scrolling frame for content
     local scrollFrame = Instance.new("ScrollingFrame")
     scrollFrame.Name = "ContentFrame"
-    scrollFrame.Size = UDim2.new(1, 0, 1, -25)
-    scrollFrame.Position = UDim2.new(0, 0, 0, 25)
+    scrollFrame.Size = UDim2.new(1, 0, 1, -20) -- Adjusted for smaller title bar
+    scrollFrame.Position = UDim2.new(0, 0, 0, 20)
     scrollFrame.BackgroundTransparency = 1
-    scrollFrame.ScrollBarThickness = 5
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will be updated as elements are added
+    scrollFrame.ScrollBarThickness = 4 -- Thinner scrollbar
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     scrollFrame.Parent = mainFrame
     
     -- Layout for elements
     local layout = Instance.new("UIListLayout")
     layout.Name = "Layout"
-    layout.Padding = UDim.new(0, 5)
+    layout.Padding = UDim.new(0, 3) -- Smaller padding between elements
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = scrollFrame
     
@@ -97,7 +98,7 @@ function UILibrary:Create(config)
     local function toggleCollapse()
         isCollapsed = not isCollapsed
         if isCollapsed then
-            mainFrame.Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset, 0, 25)
+            mainFrame.Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset, 0, 20)
             collapseButton.Text = "+"
             scrollFrame.Visible = false
         else
@@ -115,14 +116,14 @@ function UILibrary:Create(config)
     function library:Button(text, callback)
         local button = Instance.new("TextButton")
         button.Name = "Button_"..text
-        button.Size = UDim2.new(0.9, 0, 0, 30)
+        button.Size = UDim2.new(0.9, 0, 0, 25) -- Smaller button height
         button.Position = UDim2.new(0.05, 0, 0, 0)
         button.BackgroundColor3 = colors.ButtonColor
         button.BorderSizePixel = 0
         button.Text = text
         button.TextColor3 = colors.TitleColor
         button.Font = Enum.Font.Gotham
-        button.TextSize = 14
+        button.TextSize = 12 -- Smaller font
         button.Parent = scrollFrame
         
         button.MouseButton1Click:Connect(callback)
@@ -134,7 +135,7 @@ function UILibrary:Create(config)
     function library:Toggle(text, default, callback)
         local toggleFrame = Instance.new("Frame")
         toggleFrame.Name = "Toggle_"..text
-        toggleFrame.Size = UDim2.new(0.9, 0, 0, 30)
+        toggleFrame.Size = UDim2.new(0.9, 0, 0, 25) -- Smaller height
         toggleFrame.Position = UDim2.new(0.05, 0, 0, 0)
         toggleFrame.BackgroundTransparency = 1
         toggleFrame.Parent = scrollFrame
@@ -148,7 +149,7 @@ function UILibrary:Create(config)
         toggleText.TextColor3 = colors.TitleColor
         toggleText.TextXAlignment = Enum.TextXAlignment.Left
         toggleText.Font = Enum.Font.Gotham
-        toggleText.TextSize = 14
+        toggleText.TextSize = 12 -- Smaller font
         toggleText.Parent = toggleFrame
         
         local toggleButton = Instance.new("TextButton")
@@ -160,7 +161,7 @@ function UILibrary:Create(config)
         toggleButton.Text = default and "ON" or "OFF"
         toggleButton.TextColor3 = default and colors.ToggleColorON or colors.ToggleColorOFF
         toggleButton.Font = Enum.Font.Gotham
-        toggleButton.TextSize = 12
+        toggleButton.TextSize = 11 -- Smaller font
         toggleButton.Parent = toggleFrame
         
         local state = default or false
@@ -181,7 +182,7 @@ function UILibrary:Create(config)
         separator.Name = "Separator"
         separator.Size = UDim2.new(0.9, 0, 0, 1)
         separator.Position = UDim2.new(0.05, 0, 0, 0)
-        separator.BackgroundColor3 = colors.TitleColor
+        separator.BackgroundColor3 = colors.SeparatorColor -- Using customizable color
         separator.BorderSizePixel = 0
         separator.Parent = scrollFrame
         
@@ -192,7 +193,7 @@ function UILibrary:Create(config)
     function library:TextBox(text, default, callback)
         local textBoxFrame = Instance.new("Frame")
         textBoxFrame.Name = "TextBox_"..text
-        textBoxFrame.Size = UDim2.new(0.9, 0, 0, 50)
+        textBoxFrame.Size = UDim2.new(0.9, 0, 0, 40) -- Slightly smaller height
         textBoxFrame.Position = UDim2.new(0.05, 0, 0, 0)
         textBoxFrame.BackgroundTransparency = 1
         textBoxFrame.Parent = scrollFrame
@@ -206,7 +207,7 @@ function UILibrary:Create(config)
         textBoxLabel.TextColor3 = colors.TitleColor
         textBoxLabel.TextXAlignment = Enum.TextXAlignment.Left
         textBoxLabel.Font = Enum.Font.Gotham
-        textBoxLabel.TextSize = 14
+        textBoxLabel.TextSize = 11 -- Smaller font
         textBoxLabel.Parent = textBoxFrame
         
         local textBox = Instance.new("TextBox")
@@ -218,7 +219,7 @@ function UILibrary:Create(config)
         textBox.Text = default or ""
         textBox.TextColor3 = colors.TitleColor
         textBox.Font = Enum.Font.Gotham
-        textBox.TextSize = 14
+        textBox.TextSize = 12 -- Smaller font
         textBox.Parent = textBoxFrame
         
         textBox.FocusLost:Connect(function()
@@ -235,33 +236,3 @@ function UILibrary:Create(config)
     
     return library
 end
-
--- Example usage:
---[[
-local UI = UILibrary:Create({
-    Title = "CoolGui",
-    TitleColor = Color3.fromRGB(255, 255, 255),
-    CollapseBtnColor = Color3.fromRGB(200, 200, 200),
-    ButtonColor = Color3.fromRGB(60, 60, 60),
-    ToggleColor = Color3.fromRGB(80, 80, 80),
-    ToggleColorOFF = Color3.fromRGB(255, 0, 0),
-    ToggleColorON = Color3.fromRGB(0, 255, 0),
-    MainFrameColor = Color3.fromRGB(30, 30, 30)
-})
-
-UI:Button("Click Me!", function()
-    print("Clicked!")
-end)
-
-UI:Toggle("Enable Feature", false, function(value)
-    print(value)
-end)
-
-UI:Separator()
-
-UI:TextBox("Enter Text", "Default", function(value)
-    print(value)
-end)
-]]
-
-return UILibrary
