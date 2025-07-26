@@ -259,6 +259,142 @@ function UILibrary:AddTextBox(config)
     return textBoxFrame
 end
 
+function UILibrary:AddDropdown(config)
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Name = "Dropdown_" .. config.Text
+    dropdownFrame.Size = UDim2.new(0.9, 0, 0, 30)
+    dropdownFrame.Position = UDim2.new(0.05, 0, 0, 0)
+    dropdownFrame.BackgroundTransparency = 1
+    dropdownFrame.LayoutOrder = #self.Elements + 1
+    dropdownFrame.ClipsDescendants = true
+    dropdownFrame.Parent = self.ScrollingFrame
+    
+    local dropdownText = Instance.new("TextLabel")
+    dropdownText.Name = "TextLabel"
+    dropdownText.Size = UDim2.new(0.7, 0, 1, 0)
+    dropdownText.Position = UDim2.new(0, 0, 0, 0)
+    dropdownText.BackgroundTransparency = 1
+    dropdownText.Text = config.Text
+    dropdownText.TextColor3 = self.Colors.TitleColor
+    dropdownText.TextXAlignment = Enum.TextXAlignment.Left
+    dropdownText.Font = Enum.Font.Gotham
+    dropdownText.TextSize = 14
+    dropdownText.Parent = dropdownFrame
+    
+    local dropdownButton = Instance.new("TextButton")
+    dropdownButton.Name = "DropdownButton"
+    dropdownButton.Size = UDim2.new(0.25, 0, 0.8, 0)
+    dropdownButton.Position = UDim2.new(0.75, 0, 0.1, 0)
+    dropdownButton.BackgroundColor3 = self.Colors.ButtonColor
+    dropdownButton.BorderSizePixel = 0
+    dropdownButton.Text = config.Options[1] or "Select"
+    dropdownButton.TextColor3 = self.Colors.TitleColor
+    dropdownButton.Font = Enum.Font.Gotham
+    dropdownButton.TextSize = 12
+    dropdownButton.Parent = dropdownFrame
+    
+    local dropdownList = Instance.new("Frame")
+    dropdownList.Name = "DropdownList"
+    dropdownList.Size = UDim2.new(0.25, 0, 0, 0)
+    dropdownList.Position = UDim2.new(0.75, 0, 0.9, 0)
+    dropdownList.BackgroundColor3 = self.Colors.ButtonColor
+    dropdownList.BorderSizePixel = 0
+    dropdownList.Visible = false
+    dropdownList.Parent = dropdownFrame
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 1)
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Parent = dropdownList
+    
+    local isOpen = false
+    local selectedOption = config.Options[1]
+    local optionButtons = {}
+    
+    -- Create option buttons
+    for i, option in ipairs(config.Options) do
+        local optionButton = Instance.new("TextButton")
+        optionButton.Name = "Option_" .. option
+        optionButton.Size = UDim2.new(1, 0, 0, 25)
+        optionButton.Position = UDim2.new(0, 0, 0, 0)
+        optionButton.BackgroundColor3 = self.Colors.ButtonColor
+        optionButton.BorderSizePixel = 0
+        optionButton.Text = option
+        optionButton.TextColor3 = self.Colors.TitleColor
+        optionButton.Font = Enum.Font.Gotham
+        optionButton.TextSize = 12
+        optionButton.LayoutOrder = i
+        optionButton.Parent = dropdownList
+        
+        optionButton.MouseButton1Click:Connect(function()
+            selectedOption = option
+            dropdownButton.Text = option
+            isOpen = false
+            dropdownList.Visible = false
+            dropdownFrame.Size = UDim2.new(0.9, 0, 0, 30)
+            
+            if config.Callback then
+                config.Callback(option)
+            end
+        end)
+        
+        table.insert(optionButtons, optionButton)
+    end
+    
+    dropdownButton.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        
+        if isOpen then
+            dropdownList.Visible = true
+            local optionCount = #config.Options
+            local listHeight = math.min(optionCount * 26, 130) -- Limit height to show max 5 options at once
+            dropdownList.Size = UDim2.new(0.25, 0, 0, listHeight)
+            dropdownFrame.Size = UDim2.new(0.9, 0, 0, 30 + listHeight)
+        else
+            dropdownList.Visible = false
+            dropdownFrame.Size = UDim2.new(0.9, 0, 0, 30)
+        end
+    end)
+    
+    -- Close dropdown when clicking outside
+    local function onInputBegan(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if isOpen then
+                local mousePos = input.Position
+                local absolutePos = dropdownList.AbsolutePosition
+                local absoluteSize = dropdownList.AbsoluteSize
+                
+                if not (mousePos.X >= absolutePos.X and mousePos.X <= absolutePos.X + absoluteSize.X and
+                       mousePos.Y >= absolutePos.Y and mousePos.Y <= absolutePos.Y + absoluteSize.Y) then
+                    isOpen = false
+                    dropdownList.Visible = false
+                    dropdownFrame.Size = UDim2.new(0.9, 0, 0, 30)
+                end
+            end
+        end
+    end
+    
+    game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
+    
+    table.insert(self.Elements, dropdownFrame)
+    
+    -- Function to get current selected value
+    local function getValue()
+        return selectedOption
+    end
+    
+    -- Function to set value programmatically
+    local function setValue(value)
+        if table.find(config.Options, value) then
+            selectedOption = value
+            dropdownButton.Text = value
+        end
+    end
+    
+    return dropdownFrame, getValue, setValue
+end
+
 function UILibrary:AddSeparator()
     local separator = Instance.new("Frame")
     separator.Name = "Separator"
