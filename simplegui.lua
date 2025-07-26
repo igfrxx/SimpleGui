@@ -293,19 +293,26 @@ function UILibrary:AddDropdown(config)
     dropdownButton.TextSize = 12
     dropdownButton.Parent = dropdownFrame
     
-    local dropdownList = Instance.new("Frame")
+    local dropdownList = Instance.new("ScrollingFrame")
     dropdownList.Name = "DropdownList"
     dropdownList.Size = UDim2.new(0.25, 0, 0, 0)
     dropdownList.Position = UDim2.new(0.75, 0, 0.9, 0)
     dropdownList.BackgroundColor3 = self.Colors.ButtonColor
     dropdownList.BorderSizePixel = 0
     dropdownList.Visible = false
+    dropdownList.ScrollBarThickness = 5
+    dropdownList.CanvasSize = UDim2.new(0, 0, 0, 0)
     dropdownList.Parent = dropdownFrame
     
     local listLayout = Instance.new("UIListLayout")
     listLayout.Padding = UDim.new(0, 1)
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
     listLayout.Parent = dropdownList
+    
+    -- Update canvas size when options are added
+    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        dropdownList.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end)
     
     local isOpen = false
     local selectedOption = config.Options[1]
@@ -315,7 +322,7 @@ function UILibrary:AddDropdown(config)
     for i, option in ipairs(config.Options) do
         local optionButton = Instance.new("TextButton")
         optionButton.Name = "Option_" .. option
-        optionButton.Size = UDim2.new(1, 0, 0, 25)
+        optionButton.Size = UDim2.new(1, -5, 0, 25)
         optionButton.Position = UDim2.new(0, 0, 0, 0)
         optionButton.BackgroundColor3 = self.Colors.ButtonColor
         optionButton.BorderSizePixel = 0
@@ -350,6 +357,9 @@ function UILibrary:AddDropdown(config)
             local listHeight = math.min(optionCount * 26, 130) -- Limit height to show max 5 options at once
             dropdownList.Size = UDim2.new(0.25, 0, 0, listHeight)
             dropdownFrame.Size = UDim2.new(0.9, 0, 0, 30 + listHeight)
+            
+            -- Bring to front
+            dropdownFrame.Parent = dropdownFrame.Parent
         else
             dropdownList.Visible = false
             dropdownFrame.Size = UDim2.new(0.9, 0, 0, 30)
@@ -413,45 +423,5 @@ function UILibrary:Destroy()
     self.ScreenGui:Destroy()
     self = nil
 end
-
--- Example usage:
---[[
-local UI = UILibrary.new({
-    Title = "CoolGui",
-    TitleColor = Color3.fromRGB(255, 255, 255),
-    CollapseBtnColor = Color3.fromRGB(20, 20, 20),
-    ButtonColor = Color3.fromRGB(40, 40, 40),
-    ToggleColor = Color3.fromRGB(40, 40, 40),
-    ToggleColorOFF = Color3.fromRGB(255, 0, 0),
-    ToggleColorON = Color3.fromRGB(0, 255, 0),
-    MainFrameColor = Color3.fromRGB(30, 30, 30),
-    SeparatorColor = Color3.fromRGB(60, 60, 60)
-})
-
-UI:AddButton({
-    Text = "Button",
-    Callback = function()
-        print("Clicked!")
-    end
-})
-
-UI:AddToggle({
-    Text = "Toggle",
-    Default = false,
-    Callback = function(value)
-        print(value)
-    end
-})
-
-UI:AddSeparator()
-
-UI:AddTextBox({
-    Text = "Text Box",
-    Default = "Default text",
-    Callback = function(value)
-        print(value)
-    end
-})
-]]
 
 return UILibrary
