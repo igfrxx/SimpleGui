@@ -16,17 +16,14 @@ UILibrary.DefaultColors = {
     SectionColor = Color3.fromRGB(0, 150, 255),
     LabelColor = Color3.fromRGB(200, 200, 200),
     SliderColor = Color3.fromRGB(60, 60, 60),
-    SliderHandleColor = Color3.fromRGB(100, 100, 100),
-    DropdownColor = Color3.fromRGB(45, 45, 45),
-    DropdownItemColor = Color3.fromRGB(35, 35, 35),
-    KeybindColor = Color3.fromRGB(45, 45, 45)
+    SliderHandleColor = Color3.fromRGB(100, 100, 100)
 }
 
 -- Default configuration
 UILibrary.DefaultConfig = {
     Title = "UI Library",
     TitleText = "UI Library",
-    Size = UDim2.new(0, 250, 0, 350),
+    Size = UDim2.new(0, 100, 0, 150)
     Position = UDim2.new(0.5, -125, 0.5, -175),
     TitleHeight = 30,
     CornerRadius = 6,
@@ -418,20 +415,6 @@ function UILibrary:AddTextBox(config)
     return textBoxFrame
 end
 
-function UILibrary:AddSeparator()
-    local separator = Instance.new("Frame")
-    separator.Name = "Separator"
-    separator.Size = UDim2.new(1, -24, 0, 1)
-    separator.Position = UDim2.new(0, 12, 0, 0)
-    separator.BackgroundColor3 = self.Colors.SeparatorColor
-    separator.BorderSizePixel = 0
-    separator.LayoutOrder = #self.Elements + 1
-    separator.Parent = self.ScrollingFrame
-    
-    table.insert(self.Elements, separator)
-    return separator
-end
-
 function UILibrary:AddSlider(config)
     local sliderFrame = Instance.new("Frame")
     sliderFrame.Name = "Slider_" .. config.Text
@@ -493,7 +476,8 @@ function UILibrary:AddSlider(config)
     
     local dragging = false
     local currentValue = config.Default
-    
+    local userInputService = game:GetService("UserInputService")
+
     local function updateSlider(value)
         value = math.clamp(value, config.Min, config.Max)
         currentValue = value
@@ -506,296 +490,71 @@ function UILibrary:AddSlider(config)
             config.Callback(value)
         end
     end
-    
-    -- Mobile touch support
-    local function handleTouchInput(input)
-        if input.UserInputType == Enum.UserInputType.Touch then
-            local touchPos = input.Position
-            local trackPos = sliderTrack.AbsolutePosition
-            local trackSize = sliderTrack.AbsoluteSize
-            local relativeX = (touchPos.X - trackPos.X) / trackSize.X
-            local value = config.Min + (config.Max - config.Min) * relativeX
+
+    -- Handle input for both mouse and touch
+    local function handleInput(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            local inputPosition
+            if input.UserInputType == Enum.UserInputType.MouseMovement then
+                inputPosition = input.Position
+            else
+                inputPosition = input.Position
+            end
+            
+            local trackAbsolutePos = sliderTrack.AbsolutePosition
+            local trackAbsoluteSize = sliderTrack.AbsoluteSize
+            local relativeX = (inputPosition.X - trackAbsolutePos.X) / trackAbsoluteSize.X
+            local value = config.Min + (config.Max - config.Min) * math.clamp(relativeX, 0, 1)
             updateSlider(value)
         end
     end
-    
+
+    -- Start dragging when handle is clicked/touched
     sliderHandle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
         end
     end)
-    
-    game:GetService("UserInputService").InputEnded:Connect(function(input)
+
+    -- Also allow clicking anywhere on the track
+    sliderTrack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            handleInput(input)
+        end
+    end)
+
+    -- Stop dragging when input ends
+    userInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
         end
     end)
-    
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
+
+    -- Handle dragging movement
+    userInputService.InputChanged:Connect(function(input)
         if dragging then
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                local pos
-                if input.UserInputType == Enum.UserInputType.MouseMovement then
-                    pos = input.Position
-                else
-                    pos = input.Position
-                end
-                
-                local trackPos = sliderTrack.AbsolutePosition
-                local trackSize = sliderTrack.AbsoluteSize
-                local relativeX = (pos.X - trackPos.X) / trackSize.X
-                local value = config.Min + (config.Max - config.Min) * relativeX
-                updateSlider(value)
-            end
+            handleInput(input)
         end
     end)
-    
-    -- Support for clicking anywhere on the track
-    sliderTrack.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            local pos
-            if input.UserInputType == Enum.UserInputType.MouseMovement then
-                pos = input.Position
-            else
-                pos = input.Position
-            end
-                
-            local trackPos = sliderTrack.AbsolutePosition
-            local trackSize = sliderTrack.AbsoluteSize
-            local relativeX = (pos.X - trackPos.X) / trackSize.X
-            local value = config.Min + (config.Max - config.Min) * relativeX
-            updateSlider(value)
-        end
-    end)
-    
+
+    -- Return the slider frame and functions to get/set the value
     table.insert(self.Elements, sliderFrame)
     return sliderFrame, function() return currentValue end, function(value) updateSlider(value) end
 end
 
-function UILibrary:AddDropdown(config)
-    local dropdownFrame = Instance.new("Frame")
-    dropdownFrame.Name = "Dropdown_" .. config.Text
-    dropdownFrame.Size = UDim2.new(1, -24, 0, 30)
-    dropdownFrame.Position = UDim2.new(0, 12, 0, 0)
-    dropdownFrame.BackgroundTransparency = 1
-    dropdownFrame.LayoutOrder = #self.Elements + 1
-    dropdownFrame.Parent = self.ScrollingFrame
+function UILibrary:AddSeparator()
+    local separator = Instance.new("Frame")
+    separator.Name = "Separator"
+    separator.Size = UDim2.new(1, -24, 0, 1)
+    separator.Position = UDim2.new(0, 12, 0, 0)
+    separator.BackgroundColor3 = self.Colors.SeparatorColor
+    separator.BorderSizePixel = 0
+    separator.LayoutOrder = #self.Elements + 1
+    separator.Parent = self.ScrollingFrame
     
-    local dropdownLabel = Instance.new("TextLabel")
-    dropdownLabel.Name = "TextLabel"
-    dropdownLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    dropdownLabel.Position = UDim2.new(0, 0, 0, 0)
-    dropdownLabel.BackgroundTransparency = 1
-    dropdownLabel.Text = config.Text
-    dropdownLabel.TextColor3 = self.Colors.TitleColor
-    dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
-    dropdownLabel.Font = self.Config.Font
-    dropdownLabel.TextSize = self.Config.TextSize
-    dropdownLabel.Parent = dropdownFrame
-    
-    local dropdownButton = Instance.new("TextButton")
-    dropdownButton.Name = "DropdownButton"
-    dropdownButton.Size = UDim2.new(1, 0, 0.5, 0)
-    dropdownButton.Position = UDim2.new(0, 0, 0.5, 0)
-    dropdownButton.BackgroundColor3 = self.Colors.DropdownColor
-    dropdownButton.BorderSizePixel = 0
-    dropdownButton.Text = config.Options[1] or "Select..."
-    dropdownButton.TextColor3 = self.Colors.TitleColor
-    dropdownButton.Font = self.Config.Font
-    dropdownButton.TextSize = self.Config.TextSize - 1
-    dropdownButton.AutoButtonColor = false
-    dropdownButton.Parent = dropdownFrame
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 4)
-    corner.Parent = dropdownButton
-    
-    local dropdownList = Instance.new("Frame")
-    dropdownList.Name = "DropdownList"
-    dropdownList.Size = UDim2.new(1, 0, 0, 0)
-    dropdownList.Position = UDim2.new(0, 0, 0.5, 30)
-    dropdownList.BackgroundColor3 = self.Colors.DropdownColor
-    dropdownList.BorderSizePixel = 0
-    dropdownList.ClipsDescendants = true
-    dropdownList.Visible = false
-    dropdownList.Parent = dropdownFrame
-    
-    local listCorner = Instance.new("UICorner")
-    listCorner.CornerRadius = UDim.new(0, 4)
-    listCorner.Parent = dropdownList
-    
-    local listLayout = Instance.new("UIListLayout")
-    listLayout.Padding = UDim.new(0, 1)
-    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    listLayout.Parent = dropdownList
-    
-    local currentSelection = config.Options[1]
-    local isOpen = false
-    
-    -- Create dropdown items
-    for i, option in ipairs(config.Options) do
-        local item = Instance.new("TextButton")
-        item.Name = "Item_" .. option
-        item.Size = UDim2.new(1, 0, 0, 25)
-        item.Position = UDim2.new(0, 0, 0, (i-1)*25)
-        item.BackgroundColor3 = self.Colors.DropdownItemColor
-        item.BorderSizePixel = 0
-        item.Text = option
-        item.TextColor3 = self.Colors.TitleColor
-        item.Font = self.Config.Font
-        item.TextSize = self.Config.TextSize - 1
-        item.AutoButtonColor = false
-        item.LayoutOrder = i
-        item.Parent = dropdownList
-        
-        item.MouseEnter:Connect(function()
-            item.BackgroundColor3 = Color3.new(
-                self.Colors.DropdownItemColor.R * 1.2,
-                self.Colors.DropdownItemColor.G * 1.2,
-                self.Colors.DropdownItemColor.B * 1.2
-            )
-        end)
-        
-        item.MouseLeave:Connect(function()
-            item.BackgroundColor3 = self.Colors.DropdownItemColor
-        end)
-        
-        item.MouseButton1Click:Connect(function()
-            currentSelection = option
-            dropdownButton.Text = option
-            isOpen = false
-            dropdownList.Visible = false
-            dropdownList.Size = UDim2.new(1, 0, 0, 0)
-            
-            if config.Callback then
-                config.Callback(option)
-            end
-        end)
-    end
-    
-    -- Update dropdown list size
-    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        dropdownList.Size = UDim2.new(1, 0, 0, listLayout.AbsoluteContentSize.Y)
-    end)
-    
-    dropdownButton.MouseButton1Click:Connect(function()
-        isOpen = not isOpen
-        dropdownList.Visible = isOpen
-    end)
-    
-    -- Close dropdown when clicking outside
-    local function onInputBegan(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            if isOpen and not dropdownButton:IsDescendantOf(input:GetMouse().Target) and not dropdownList:IsDescendantOf(input:GetMouse().Target) then
-                isOpen = false
-                dropdownList.Visible = false
-                dropdownList.Size = UDim2.new(1, 0, 0, 0)
-            end
-        end
-    end
-    
-    game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
-    
-    table.insert(self.Elements, dropdownFrame)
-    return dropdownFrame, function() return currentSelection end
-end
-
-function UILibrary:AddKeybind(config)
-    local keybindFrame = Instance.new("Frame")
-    keybindFrame.Name = "Keybind_" .. config.Text
-    keybindFrame.Size = UDim2.new(1, -24, 0, 26)
-    keybindFrame.Position = UDim2.new(0, 12, 0, 0)
-    keybindFrame.BackgroundTransparency = 1
-    keybindFrame.LayoutOrder = #self.Elements + 1
-    keybindFrame.Parent = self.ScrollingFrame
-    
-    local keybindText = Instance.new("TextLabel")
-    keybindText.Name = "TextLabel"
-    keybindText.Size = UDim2.new(0.7, 0, 1, 0)
-    keybindText.Position = UDim2.new(0, 0, 0, 0)
-    keybindText.BackgroundTransparency = 1
-    keybindText.Text = config.Text
-    keybindText.TextColor3 = self.Colors.TitleColor
-    keybindText.TextXAlignment = Enum.TextXAlignment.Left
-    keybindText.Font = self.Config.Font
-    keybindText.TextSize = self.Config.TextSize
-    keybindText.Parent = keybindFrame
-    
-    local keybindButton = Instance.new("TextButton")
-    keybindButton.Name = "KeybindButton"
-    keybindButton.Size = UDim2.new(0.25, 0, 0.8, 0)
-    keybindButton.Position = UDim2.new(0.75, 0, 0.1, 0)
-    keybindButton.BackgroundColor3 = self.Colors.KeybindColor
-    keybindButton.BorderSizePixel = 0
-    keybindButton.Text = config.Default and tostring(config.Default):gsub("Enum.KeyCode.", "") or "NONE"
-    keybindButton.TextColor3 = self.Colors.TitleColor
-    keybindButton.Font = self.Config.Font
-    keybindButton.TextSize = self.Config.TextSize - 1
-    keybindButton.AutoButtonColor = false
-    keybindButton.Parent = keybindFrame
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 4)
-    corner.Parent = keybindButton
-    
-    local currentKey = config.Default
-    local listening = false
-    
-    -- Hover effect
-    keybindButton.MouseEnter:Connect(function()
-        keybindButton.BackgroundColor3 = Color3.new(
-            self.Colors.KeybindColor.R * 1.1,
-            self.Colors.KeybindColor.G * 1.1,
-            self.Colors.KeybindColor.B * 1.1
-        )
-    end)
-    
-    keybindButton.MouseLeave:Connect(function()
-        keybindButton.BackgroundColor3 = self.Colors.KeybindColor
-    end)
-    
-    keybindButton.MouseButton1Click:Connect(function()
-        listening = true
-        keybindButton.Text = "..."
-        keybindButton.TextColor3 = self.Colors.ToggleColorON
-    end)
-    
-    local connection
-    connection = game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
-        if not listening or processed then return end
-        
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            currentKey = input.KeyCode
-            keybindButton.Text = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
-            keybindButton.TextColor3 = self.Colors.TitleColor
-            listening = false
-            
-            if config.Callback then
-                config.Callback(input.KeyCode)
-            end
-        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-            currentKey = Enum.UserInputType.MouseButton1
-            keybindButton.Text = "Mouse1"
-            keybindButton.TextColor3 = self.Colors.TitleColor
-            listening = false
-            
-            if config.Callback then
-                config.Callback(Enum.UserInputType.MouseButton1)
-            end
-        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-            currentKey = Enum.UserInputType.MouseButton2
-            keybindButton.Text = "Mouse2"
-            keybindButton.TextColor3 = self.Colors.TitleColor
-            listening = false
-            
-            if config.Callback then
-                config.Callback(Enum.UserInputType.MouseButton2)
-            end
-        end
-    end)
-    
-    table.insert(self.Elements, keybindFrame)
-    return keybindFrame, function() return currentKey end
+    table.insert(self.Elements, separator)
+    return separator
 end
 
 function UILibrary:Destroy()
