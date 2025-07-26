@@ -12,20 +12,25 @@ UILibrary.DefaultColors = {
     MainFrameColor = Color3.fromRGB(35, 35, 35),
     SeparatorColor = Color3.fromRGB(70, 70, 70),
     TextBoxColor = Color3.fromRGB(45, 45, 45),
-    AccentColor = Color3.fromRGB(0, 120, 215)
+    AccentColor = Color3.fromRGB(0, 120, 215),
+    SectionColor = Color3.fromRGB(0, 150, 255),
+    LabelColor = Color3.fromRGB(200, 200, 200),
+    SliderColor = Color3.fromRGB(60, 60, 60),
+    SliderHandleColor = Color3.fromRGB(100, 100, 100)
 }
 
 -- Default configuration
 UILibrary.DefaultConfig = {
     Title = "UI Library",
-    TitleText = "UI Library", -- Separate from Title for display
-    Size = UDim2.new(0, 180, 0, 250), -- Smaller default size
-    Position = UDim2.new(0.5, -90, 0.5, -125), -- Adjusted for new size
-    TitleHeight = 28,
-    CornerRadius = 4,
-    ElementPadding = 5,
+    TitleText = "UI Library",
+    Size = UDim2.new(0, 250, 0, 350),
+    Position = UDim2.new(0.5, -125, 0.5, -175),
+    TitleHeight = 30,
+    CornerRadius = 6,
+    ElementPadding = 6,
     Font = Enum.Font.GothamSemibold,
-    TextSize = 12
+    TextSize = 12,
+    SectionHeight = 20
 }
 
 function UILibrary.new(config)
@@ -70,6 +75,7 @@ function UILibrary:CreateUI()
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.Active = true
     self.MainFrame.Draggable = true
+    self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.ScreenGui
     
     local corner = Instance.new("UICorner")
@@ -94,13 +100,13 @@ function UILibrary:CreateUI()
     self.TitleText = Instance.new("TextLabel")
     self.TitleText.Name = "TitleText"
     self.TitleText.Size = UDim2.new(0.7, 0, 1, 0)
-    self.TitleText.Position = UDim2.new(0, 10, 0, 0)
+    self.TitleText.Position = UDim2.new(0, 12, 0, 0)
     self.TitleText.BackgroundTransparency = 1
     self.TitleText.Text = self.Config.TitleText
     self.TitleText.TextColor3 = self.Colors.TitleColor
     self.TitleText.TextXAlignment = Enum.TextXAlignment.Left
-    self.TitleText.Font = self.Config.Font
-    self.TitleText.TextSize = self.Config.TextSize + 2
+    self.TitleText.Font = Enum.Font.GothamBold
+    self.TitleText.TextSize = 14
     self.TitleText.ZIndex = 3
     self.TitleText.Parent = self.TitleBar
     
@@ -114,7 +120,7 @@ function UILibrary:CreateUI()
     self.MinimizeButton.Text = "-"
     self.MinimizeButton.TextColor3 = self.Colors.TitleColor
     self.MinimizeButton.Font = Enum.Font.GothamBold
-    self.MinimizeButton.TextSize = 16
+    self.MinimizeButton.TextSize = 18
     self.MinimizeButton.ZIndex = 3
     self.MinimizeButton.Parent = self.TitleBar
     
@@ -143,10 +149,10 @@ function UILibrary:CreateUI()
     
     -- Padding for elements
     local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, 10)
-    padding.PaddingRight = UDim.new(0, 10)
-    padding.PaddingTop = UDim.new(0, 8)
-    padding.PaddingBottom = UDim.new(0, 8)
+    padding.PaddingLeft = UDim.new(0, 12)
+    padding.PaddingRight = UDim.new(0, 12)
+    padding.PaddingTop = UDim.new(0, 10)
+    padding.PaddingBottom = UDim.new(0, 10)
     padding.Parent = self.ScrollingFrame
     
     -- Store original size for toggling
@@ -160,15 +166,15 @@ function UILibrary:CreateUI()
     
     -- Update canvas size when elements are added
     self.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.UIListLayout.AbsoluteContentSize.Y + 10)
+        self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.UIListLayout.AbsoluteContentSize.Y + 15)
     end)
     
     -- Add hover effects to title bar for better UX
     self.TitleBar.MouseEnter:Connect(function()
-        self.TitleBar.BackgroundColor3 = Color3.fromRGB(
-            self.Colors.CollapseBtnColor.R * 255 * 1.1,
-            self.Colors.CollapseBtnColor.G * 255 * 1.1,
-            self.Colors.CollapseBtnColor.B * 255 * 1.1
+        self.TitleBar.BackgroundColor3 = Color3.new(
+            self.Colors.CollapseBtnColor.R * 1.2,
+            self.Colors.CollapseBtnColor.G * 1.2,
+            self.Colors.CollapseBtnColor.B * 1.2
         )
     end)
     
@@ -200,11 +206,54 @@ function UILibrary:SetTitle(newTitle)
     self.TitleText.Text = newTitle
 end
 
+function UILibrary:AddSection(text)
+    local section = Instance.new("Frame")
+    section.Name = "Section_" .. text
+    section.Size = UDim2.new(1, -24, 0, self.Config.SectionHeight)
+    section.Position = UDim2.new(0, 12, 0, 0)
+    section.BackgroundTransparency = 1
+    section.LayoutOrder = #self.Elements + 1
+    section.Parent = self.ScrollingFrame
+    
+    local sectionText = Instance.new("TextLabel")
+    sectionText.Name = "TextLabel"
+    sectionText.Size = UDim2.new(1, 0, 1, 0)
+    sectionText.Position = UDim2.new(0, 0, 0, 0)
+    sectionText.BackgroundTransparency = 1
+    sectionText.Text = text
+    sectionText.TextColor3 = self.Colors.SectionColor
+    sectionText.TextXAlignment = Enum.TextXAlignment.Left
+    sectionText.Font = Enum.Font.GothamBold
+    sectionText.TextSize = self.Config.TextSize + 1
+    sectionText.Parent = section
+    
+    table.insert(self.Elements, section)
+    return section
+end
+
+function UILibrary:AddLabel(text)
+    local label = Instance.new("TextLabel")
+    label.Name = "Label_" .. text
+    label.Size = UDim2.new(1, -24, 0, 18)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = self.Colors.LabelColor
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = self.Config.Font
+    label.TextSize = self.Config.TextSize
+    label.LayoutOrder = #self.Elements + 1
+    label.Parent = self.ScrollingFrame
+    
+    table.insert(self.Elements, label)
+    return label
+end
+
 function UILibrary:AddButton(config)
     local button = Instance.new("TextButton")
     button.Name = "Button_" .. config.Text
-    button.Size = UDim2.new(1, -20, 0, 28)
-    button.Position = UDim2.new(0, 10, 0, 0)
+    button.Size = UDim2.new(1, -24, 0, 30)
+    button.Position = UDim2.new(0, 12, 0, 0)
     button.BackgroundColor3 = self.Colors.ButtonColor
     button.BorderSizePixel = 0
     button.Text = config.Text
@@ -216,7 +265,7 @@ function UILibrary:AddButton(config)
     button.Parent = self.ScrollingFrame
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, self.Config.CornerRadius)
+    corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = button
     
     -- Hover effects
@@ -233,7 +282,7 @@ function UILibrary:AddButton(config)
             -- Pulse effect on click
             local originalSize = button.Size
             button.Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset, originalSize.Y.Scale, originalSize.Y.Offset - 2)
-            task.wait(0.1)
+            task.wait(0.08)
             button.Size = originalSize
             
             config.Callback()
@@ -247,8 +296,8 @@ end
 function UILibrary:AddToggle(config)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Name = "Toggle_" .. config.Text
-    toggleFrame.Size = UDim2.new(1, -20, 0, 28)
-    toggleFrame.Position = UDim2.new(0, 10, 0, 0)
+    toggleFrame.Size = UDim2.new(1, -24, 0, 26)
+    toggleFrame.Position = UDim2.new(0, 12, 0, 0)
     toggleFrame.BackgroundTransparency = 1
     toggleFrame.LayoutOrder = #self.Elements + 1
     toggleFrame.Parent = self.ScrollingFrame
@@ -279,17 +328,17 @@ function UILibrary:AddToggle(config)
     toggleButton.Parent = toggleFrame
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, self.Config.CornerRadius)
+    corner.CornerRadius = UDim.new(0, 12)
     corner.Parent = toggleButton
     
     local state = config.Default or false
     
     -- Hover effect
     toggleButton.MouseEnter:Connect(function()
-        toggleButton.BackgroundColor3 = Color3.fromRGB(
-            self.Colors.ToggleColor.R * 255 * 1.1,
-            self.Colors.ToggleColor.G * 255 * 1.1,
-            self.Colors.ToggleColor.B * 255 * 1.1
+        toggleButton.BackgroundColor3 = Color3.new(
+            self.Colors.ToggleColor.R * 1.1,
+            self.Colors.ToggleColor.G * 1.1,
+            self.Colors.ToggleColor.B * 1.1
         )
     end)
     
@@ -319,8 +368,8 @@ end
 function UILibrary:AddTextBox(config)
     local textBoxFrame = Instance.new("Frame")
     textBoxFrame.Name = "TextBox_" .. config.Text
-    textBoxFrame.Size = UDim2.new(1, -20, 0, 50)
-    textBoxFrame.Position = UDim2.new(0, 10, 0, 0)
+    textBoxFrame.Size = UDim2.new(1, -24, 0, 50)
+    textBoxFrame.Position = UDim2.new(0, 12, 0, 0)
     textBoxFrame.BackgroundTransparency = 1
     textBoxFrame.LayoutOrder = #self.Elements + 1
     textBoxFrame.Parent = self.ScrollingFrame
@@ -348,10 +397,11 @@ function UILibrary:AddTextBox(config)
     textBox.Font = self.Config.Font
     textBox.TextSize = self.Config.TextSize
     textBox.PlaceholderText = config.Placeholder or ""
+    textBox.PlaceholderColor3 = Color3.new(0.7, 0.7, 0.7)
     textBox.Parent = textBoxFrame
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, self.Config.CornerRadius)
+    corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = textBox
     
     if config.Callback then
@@ -368,8 +418,8 @@ end
 function UILibrary:AddSeparator()
     local separator = Instance.new("Frame")
     separator.Name = "Separator"
-    separator.Size = UDim2.new(1, -20, 0, 1)
-    separator.Position = UDim2.new(0, 10, 0, 0)
+    separator.Size = UDim2.new(1, -24, 0, 1)
+    separator.Position = UDim2.new(0, 12, 0, 0)
     separator.BackgroundColor3 = self.Colors.SeparatorColor
     separator.BorderSizePixel = 0
     separator.LayoutOrder = #self.Elements + 1
@@ -379,8 +429,109 @@ function UILibrary:AddSeparator()
     return separator
 end
 
+function UILibrary:AddSlider(config)
+    local sliderFrame = Instance.new("Frame")
+    sliderFrame.Name = "Slider_" .. config.Text
+    sliderFrame.Size = UDim2.new(1, -24, 0, 50)
+    sliderFrame.Position = UDim2.new(0, 12, 0, 0)
+    sliderFrame.BackgroundTransparency = 1
+    sliderFrame.LayoutOrder = #self.Elements + 1
+    sliderFrame.Parent = self.ScrollingFrame
+    
+    local sliderText = Instance.new("TextLabel")
+    sliderText.Name = "TextLabel"
+    sliderText.Size = UDim2.new(1, 0, 0.4, 0)
+    sliderText.Position = UDim2.new(0, 0, 0, 0)
+    sliderText.BackgroundTransparency = 1
+    sliderText.Text = config.Text .. ": " .. config.Default
+    sliderText.TextColor3 = self.Colors.TitleColor
+    sliderText.TextXAlignment = Enum.TextXAlignment.Left
+    sliderText.Font = self.Config.Font
+    sliderText.TextSize = self.Config.TextSize
+    sliderText.Parent = sliderFrame
+    
+    local sliderTrack = Instance.new("Frame")
+    sliderTrack.Name = "Track"
+    sliderTrack.Size = UDim2.new(1, 0, 0.25, 0)
+    sliderTrack.Position = UDim2.new(0, 0, 0.7, 0)
+    sliderTrack.BackgroundColor3 = self.Colors.SliderColor
+    sliderTrack.BorderSizePixel = 0
+    sliderTrack.Parent = sliderFrame
+    
+    local sliderCorner = Instance.new("UICorner")
+    sliderCorner.CornerRadius = UDim.new(1, 0)
+    sliderCorner.Parent = sliderTrack
+    
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Name = "Fill"
+    sliderFill.Size = UDim2.new((config.Default - config.Min) / (config.Max - config.Min), 0, 1, 0)
+    sliderFill.BackgroundColor3 = self.Colors.AccentColor
+    sliderFill.BorderSizePixel = 0
+    sliderFill.Parent = sliderTrack
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = sliderFill
+    
+    local sliderHandle = Instance.new("TextButton")
+    sliderHandle.Name = "Handle"
+    sliderHandle.Size = UDim2.new(0, 16, 0, 16)
+    sliderHandle.Position = UDim2.new(sliderFill.Size.X.Scale, -8, 0.5, -8)
+    sliderHandle.BackgroundColor3 = self.Colors.SliderHandleColor
+    sliderHandle.BorderSizePixel = 0
+    sliderHandle.Text = ""
+    sliderHandle.AutoButtonColor = false
+    sliderHandle.ZIndex = 2
+    sliderHandle.Parent = sliderTrack
+    
+    local handleCorner = Instance.new("UICorner")
+    handleCorner.CornerRadius = UDim.new(1, 0)
+    handleCorner.Parent = sliderHandle
+    
+    local dragging = false
+    local currentValue = config.Default
+    
+    local function updateSlider(value)
+        value = math.clamp(value, config.Min, config.Max)
+        currentValue = value
+        sliderFill.Size = UDim2.new((value - config.Min) / (config.Max - config.Min), 0, 1, 0)
+        sliderHandle.Position = UDim2.new(sliderFill.Size.X.Scale, -8, 0.5, -8)
+        sliderText.Text = config.Text .. ": " .. math.floor(value)
+        
+        if config.Callback then
+            config.Callback(value)
+        end
+    end
+    
+    sliderHandle.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mousePos = game:GetService("UserInputService"):GetMouseLocation()
+            local trackPos = sliderTrack.AbsolutePosition
+            local trackSize = sliderTrack.AbsoluteSize
+            local relativeX = (mousePos.X - trackPos.X) / trackSize.X
+            local value = config.Min + (config.Max - config.Min) * relativeX
+            updateSlider(value)
+        end
+    end)
+    
+    table.insert(self.Elements, sliderFrame)
+    return sliderFrame
+end
+
 function UILibrary:Destroy()
-    self.ScreenGui:Destroy()
+    if self.ScreenGui then
+        self.ScreenGui:Destroy()
+    end
     self = nil
 end
 
