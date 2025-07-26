@@ -1,6 +1,8 @@
+-- slider, keybind and dropdown are WIP
+
 local UILibrary = {}
 
--- Default colors with a more modern palette
+-- cool colors
 UILibrary.DefaultColors = {
     TitleColor = Color3.fromRGB(255, 255, 255),
     CollapseBtnColor = Color3.fromRGB(25, 25, 25),
@@ -13,13 +15,12 @@ UILibrary.DefaultColors = {
     SeparatorColor = Color3.fromRGB(70, 70, 70),
     TextBoxColor = Color3.fromRGB(45, 45, 45),
     AccentColor = Color3.fromRGB(0, 120, 215),
-    SectionColor = Color3.fromRGB(0, 150, 255),
+    SectionColor = Color3.fromRGB(80, 80, 80),
     LabelColor = Color3.fromRGB(200, 200, 200),
     SliderColor = Color3.fromRGB(60, 60, 60),
     SliderHandleColor = Color3.fromRGB(100, 100, 100)
 }
 
--- Default configuration
 UILibrary.DefaultConfig = {
     Title = "UI Library",
     TitleText = "UI Library",
@@ -36,37 +37,31 @@ UILibrary.DefaultConfig = {
 function UILibrary.new(config)
     local self = setmetatable({}, { __index = UILibrary })
     
-    -- Merge config with defaults
     self.Config = {}
     for k, v in pairs(UILibrary.DefaultConfig) do
         self.Config[k] = config[k] or v
     end
     
-    -- Colors
     self.Colors = {}
     for colorName, defaultColor in pairs(UILibrary.DefaultColors) do
         self.Colors[colorName] = config[colorName] or defaultColor
     end
     
-    -- UI Elements
     self.Elements = {}
     self.Visible = true
     self.Minimized = false
     
-    -- Create the UI
     self:CreateUI()
     
     return self
 end
 
 function UILibrary:CreateUI()
-    -- Main ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
     self.ScreenGui.Name = "UILibrary"
     self.ScreenGui.Parent = game:GetService("CoreGui")
     self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
-    -- Main Frame with rounded corners
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
     self.MainFrame.Size = self.Config.Size
@@ -82,7 +77,6 @@ function UILibrary:CreateUI()
     corner.CornerRadius = UDim.new(0, self.Config.CornerRadius)
     corner.Parent = self.MainFrame
     
-    -- Title Bar
     self.TitleBar = Instance.new("Frame")
     self.TitleBar.Name = "TitleBar"
     self.TitleBar.Size = UDim2.new(1, 0, 0, self.Config.TitleHeight)
@@ -96,7 +90,6 @@ function UILibrary:CreateUI()
     titleCorner.CornerRadius = UDim.new(0, self.Config.CornerRadius)
     titleCorner.Parent = self.TitleBar
     
-    -- Title Text
     self.TitleText = Instance.new("TextLabel")
     self.TitleText.Name = "TitleText"
     self.TitleText.Size = UDim2.new(0.7, 0, 1, 0)
@@ -110,7 +103,6 @@ function UILibrary:CreateUI()
     self.TitleText.ZIndex = 3
     self.TitleText.Parent = self.TitleBar
     
-    -- Minimize Button
     self.MinimizeButton = Instance.new("TextButton")
     self.MinimizeButton.Name = "MinimizeButton"
     self.MinimizeButton.Size = UDim2.new(0, self.Config.TitleHeight, 0, self.Config.TitleHeight)
@@ -124,12 +116,10 @@ function UILibrary:CreateUI()
     self.MinimizeButton.ZIndex = 3
     self.MinimizeButton.Parent = self.TitleBar
     
-    -- Add corner to minimize button
     local minCorner = Instance.new("UICorner")
     minCorner.CornerRadius = UDim.new(0, self.Config.CornerRadius)
     minCorner.Parent = self.MinimizeButton
     
-    -- Scrolling Frame
     self.ScrollingFrame = Instance.new("ScrollingFrame")
     self.ScrollingFrame.Name = "ContentFrame"
     self.ScrollingFrame.Size = UDim2.new(1, 0, 1, -self.Config.TitleHeight)
@@ -141,13 +131,11 @@ function UILibrary:CreateUI()
     self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     self.ScrollingFrame.Parent = self.MainFrame
     
-    -- UIListLayout for elements
     self.UIListLayout = Instance.new("UIListLayout")
     self.UIListLayout.Padding = UDim.new(0, self.Config.ElementPadding)
     self.UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     self.UIListLayout.Parent = self.ScrollingFrame
     
-    -- Padding for elements
     local padding = Instance.new("UIPadding")
     padding.PaddingLeft = UDim.new(0, 12)
     padding.PaddingRight = UDim.new(0, 12)
@@ -155,21 +143,17 @@ function UILibrary:CreateUI()
     padding.PaddingBottom = UDim.new(0, 10)
     padding.Parent = self.ScrollingFrame
     
-    -- Store original size for toggling
     self.OriginalSize = self.MainFrame.Size
     self.OriginalPosition = self.MainFrame.Position
     
-    -- Connect minimize button
     self.MinimizeButton.MouseButton1Click:Connect(function()
         self:ToggleMinimize()
     end)
     
-    -- Update canvas size when elements are added
     self.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         self.ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, self.UIListLayout.AbsoluteContentSize.Y + 15)
     end)
     
-    -- Add hover effects to title bar for better UX
     self.TitleBar.MouseEnter:Connect(function()
         self.TitleBar.BackgroundColor3 = Color3.new(
             self.Colors.CollapseBtnColor.R * 1.2,
@@ -268,7 +252,6 @@ function UILibrary:AddButton(config)
     corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = button
     
-    -- Hover effects
     button.MouseEnter:Connect(function()
         button.BackgroundColor3 = self.Colors.ButtonHoverColor
     end)
@@ -279,7 +262,6 @@ function UILibrary:AddButton(config)
     
     if config.Callback then
         button.MouseButton1Click:Connect(function()
-            -- Pulse effect on click
             local originalSize = button.Size
             button.Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset, originalSize.Y.Scale, originalSize.Y.Offset - 2)
             task.wait(0.08)
@@ -333,7 +315,6 @@ function UILibrary:AddToggle(config)
     
     local state = config.Default or false
     
-    -- Hover effect
     toggleButton.MouseEnter:Connect(function()
         toggleButton.BackgroundColor3 = Color3.new(
             self.Colors.ToggleColor.R * 1.1,
